@@ -1,7 +1,6 @@
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:fyp_passenger/models/request.dart';
 import 'package:fyp_passenger/models/route_info.dart';
 import 'package:fyp_passenger/models/terminal.dart';
@@ -28,7 +27,6 @@ class FirestoreManager {
     final List<QueryDocumentSnapshot> terminalDocs = terminalQuerySnapshot.docs;
     for (var terminalDoc in terminalDocs) {
       if (terminalDoc['terminal_id'] == terminalID) {
-        debugPrint('The request comes from: ${terminalDoc['terminal_name']}');
         final CollectionReference requestColRef = terminalDoc.reference.collection('requests');
         final String docID =
             '@${terminalDoc['terminal_name']}@${DateTime.now().millisecondsSinceEpoch}@${Random.secure().nextInt(100)}@';
@@ -41,7 +39,6 @@ class FirestoreManager {
   }
 
   // works perfectly
-
   Future<List<String>> getAllTerminalIDs() async {
     List<String> terminalIDs = [];
 
@@ -71,23 +68,16 @@ class FirestoreManager {
     final List<QueryDocumentSnapshot> docs = querySnapshot.docs;
 
     for (var doc in docs) {
-      debugPrint('--------${doc.id}');
-      debugPrint(doc.data().toString());
-      debugPrint(doc['from_terminal']);
-
       final terminalColRef = doc.reference.collection('terminals');
       final QuerySnapshot terminalQuerySnapshot = await terminalColRef.get();
       final List<QueryDocumentSnapshot> terminalDocs = terminalQuerySnapshot.docs;
 
       for (var terminalDoc in terminalDocs) {
-        debugPrint(terminalDoc.id);
         final requestColRef = terminalDoc.reference.collection('requests');
         final QuerySnapshot requestQuerySnapshot = await requestColRef.get();
         final List<QueryDocumentSnapshot> requestDocs = requestQuerySnapshot.docs;
         for (var requestDoc in requestDocs) {
-          debugPrint(requestDoc.id);
           requests.add(Request(requestTime: requestDoc['request_time']));
-          debugPrint('request_length: ${requests.length}');
         }
         terminals.add(Terminal(
           terminalID: terminalDoc['terminal_id'],
@@ -98,7 +88,6 @@ class FirestoreManager {
             longitude: terminalDoc['terminal_location']['terminal_longitude'],
           ),
         ));
-        debugPrint('-------terminal_length: ${terminals.length}');
       }
       //here
       routes.add(RouteInfo(
@@ -107,26 +96,7 @@ class FirestoreManager {
         toTerminal: doc['to_terminal'],
         routeTerminals: terminals,
       ));
-      debugPrint('------route_length: ${routes.length}');
     }
-
-    // await _db.collection('routes').get().then((querySnapshot) {
-    //   for (var docSnapshot in querySnapshot.docs) {
-    //     final CollectionReference terminalColRef = docSnapshot.log(docSnapshot.data().toString());
-    //     // for (var terminalSnap in docSnapshot.data()['terminals']) {
-    //     //   log(terminalSnap.toString());
-    //     // }
-    //
-    //     // routes.add(
-    //     //   // RouteInfo(
-    //     //   //   reference: docSnapshot.id,
-    //     //   //   fromTerminal: docSnapshot['from_terminal'],
-    //     //   //   toTerminal: docSnapshot['to_terminal'],
-    //     //   //   // routeTerminals: _getTerminalList(docSnapshot['terminals']),
-    //     //   // ),
-    //     // );
-    //   }
-    // });
     return routes;
   }
 }
