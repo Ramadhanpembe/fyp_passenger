@@ -15,14 +15,16 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   late Future<List<RouteInfo>> _routes;
   late final String instanceID = widget.instanceID;
+  late final Future<String> _terminalName;
 
-  void _getRoutes() async {
+  void _getAll() async {
     _routes = firestoreManager.getRoutes();
+    _terminalName = firestoreManager.getTerminalName(int.parse(instanceID));
   }
 
   @override
   void initState() {
-    _getRoutes();
+    _getAll();
     super.initState();
   }
 
@@ -30,12 +32,28 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Real Time Passenger Management',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 56,
-          ),
+        title: FutureBuilder(
+          future: _terminalName,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting ||
+                snapshot.data == null ||
+                snapshot.data!.isEmpty) {
+              return const Text(
+                'Real Time Passenger Management',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 56,
+                ),
+              );
+            }
+            return Text(
+              'Real Time Passenger Management - ${snapshot.data!} terminal',
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 48,
+              ),
+            );
+          },
         ),
         centerTitle: true,
         toolbarHeight: 100,
@@ -122,10 +140,6 @@ class _HomePageState extends State<HomePage> {
                             },
                           ),
                           onTap: () {
-                            /// the number one here is used intentionally as terminalID, when the app is
-                            /// loaded into browsers in different location, this will act as a parameter,
-                            /// and the admin will pass the specified id of the respective terminal. As
-                            /// for developing purpose it is taken as one so far.
                             firestoreManager.counter(list[index].reference, int.parse(instanceID));
                           },
                         );

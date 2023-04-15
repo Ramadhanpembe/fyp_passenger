@@ -18,8 +18,6 @@ class FirestoreManager {
   }
 
   void counter(String routeRef, int terminalID) async {
-    // this will help us to identify which terminal among the route terminals the request is
-    // coming from
     final docRef = _db.collection('routes').doc(routeRef);
     final DocumentSnapshot mainDoc = await docRef.get();
     final CollectionReference terminalColRef = mainDoc.reference.collection('terminals');
@@ -36,6 +34,24 @@ class FirestoreManager {
         });
       }
     }
+  }
+
+  Future<String> getTerminalName(int terminalID) async {
+    final CollectionReference routeColRef = _db.collection('routes');
+    final QuerySnapshot querySnapshot = await routeColRef.get();
+    final List<QueryDocumentSnapshot> routeDocs = querySnapshot.docs;
+
+    for (var doc in routeDocs) {
+      final CollectionReference terminalColRef = doc.reference.collection('terminals');
+      final QuerySnapshot querySnapshot = await terminalColRef.get();
+      final List<QueryDocumentSnapshot> terminalDocs = querySnapshot.docs;
+      for (var doc in terminalDocs) {
+        if (doc['terminal_id'] == terminalID) {
+          return doc['terminal_name'];
+        }
+      }
+    }
+    return '';
   }
 
   // works perfectly
