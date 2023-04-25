@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fyp_passenger/data/location_manager.dart';
 import 'package:fyp_passenger/data/resource.dart';
 import 'package:fyp_passenger/pages/home_page.dart';
 
@@ -24,6 +25,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void initState() {
     firestoreManager = FirestoreManager();
+    locationManager = LocationManager();
     _getAllTerminalIDs();
     super.initState();
   }

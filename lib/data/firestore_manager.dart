@@ -1,10 +1,13 @@
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:fyp_passenger/data/resource.dart';
 import 'package:fyp_passenger/models/request.dart';
 import 'package:fyp_passenger/models/route_info.dart';
 import 'package:fyp_passenger/models/terminal.dart';
 import 'package:fyp_passenger/models/terminal_location.dart';
+import 'package:geolocator/geolocator.dart';
 
 class FirestoreManager {
   late final FirebaseFirestore _db;
@@ -114,5 +117,36 @@ class FirestoreManager {
       ));
     }
     return routes;
+  }
+
+  void updateTerminalLocation(String terminalID) async {
+    final QuerySnapshot routeQuerySnapshot = await _db.collection('routes').get();
+    final List<QueryDocumentSnapshot> routeDocs = routeQuerySnapshot.docs;
+    for (var routeDoc in routeDocs) {
+      final QuerySnapshot terminalQuerySnapshot =
+          await routeDoc.reference.collection('terminals').get();
+      final List<QueryDocumentSnapshot> terminalDocs = terminalQuerySnapshot.docs;
+      for (var terminalDoc in terminalDocs) {
+        if (terminalDoc['terminal_id'] == int.parse(terminalID)) {
+          final String routeRef = routeDoc.id;
+          debugPrint('routeRef: $routeRef');
+          final String terminalRef = terminalDoc.id;
+          debugPrint('terminalRef: $terminalRef');
+          final Position? position = await locationManager.getCurrentLocation();
+          if (position == null) return;
+          await _db
+              .collection('routes')
+              .doc(routeRef)
+              .collection('terminals')
+              .doc(terminalRef)
+              .update({
+            'terminal_location': {
+              'terminal_latitude': position.latitude, // to be updated
+              'terminal_longitude': position.longitude // to be updated
+            }
+          });
+        }
+      }
+    }
   }
 }

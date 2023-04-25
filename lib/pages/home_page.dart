@@ -25,6 +25,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     _getAll();
+    firestoreManager.updateTerminalLocation(instanceID);
     super.initState();
   }
 
@@ -47,7 +48,7 @@ class _HomePageState extends State<HomePage> {
               );
             }
             return Text(
-              'Real Time Passenger Management - ${snapshot.data!} terminal',
+              'Real Time Passenger Management - ${snapshot.data!} area',
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 48,
@@ -80,7 +81,7 @@ class _HomePageState extends State<HomePage> {
             FutureBuilder(
               future: _routes,
               builder: (context, snapshot) {
-                if (snapshot.connectionState != ConnectionState.done) {
+                if (snapshot.connectionState == ConnectionState.waiting || snapshot.data == null) {
                   return const SizedBox(
                     width: 32.0,
                     height: 32.0,
@@ -91,65 +92,60 @@ class _HomePageState extends State<HomePage> {
                     ),
                   );
                 }
-                if (snapshot.hasData) {
-                  List<RouteInfo> list = snapshot.data!;
-                  return Expanded(
-                    child: GridView.builder(
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 3,
-                        childAspectRatio: 4,
-                      ),
-                      shrinkWrap: true,
-                      itemBuilder: (context, index) {
-                        return GestureDetector(
-                          child: LayoutBuilder(
-                            builder: (context, constraints) {
-                              final width = constraints.maxWidth;
-                              return Card(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(15),
-                                ),
-                                elevation: 10,
-                                color: const Color(0xffedede9),
-                                margin: const EdgeInsets.all(10),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(15),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        list[index].fromTerminal,
-                                        style: kTerminalStyle.copyWith(
-                                          fontSize: _fontSize(width),
-                                        ),
-                                      ),
-                                      CircleAvatar(
-                                        foregroundColor: const Color(0xfff4f3ee),
-                                        backgroundColor: const Color(0xffbcb8b1),
-                                        radius: _fontSize(width),
-                                        child: const Icon(Icons.sync_alt),
-                                      ),
-                                      Text(
-                                        list[index].toTerminal,
-                                        style: kTerminalStyle.copyWith(fontSize: _fontSize(width)),
-                                      )
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                          onTap: () {
-                            firestoreManager.counter(list[index].reference, int.parse(instanceID));
-                          },
-                        );
-                      },
-                      itemCount: list.length,
+                List<RouteInfo> list = snapshot.data!;
+                return Expanded(
+                  child: GridView.builder(
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      childAspectRatio: 4,
                     ),
-                  );
-                }
-                return const Center(
-                  child: Text('Mhh! Something\'s wrong'),
+                    shrinkWrap: true,
+                    itemBuilder: (context, index) {
+                      return GestureDetector(
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            final width = constraints.maxWidth;
+                            return Card(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              elevation: 10,
+                              color: const Color(0xffedede9),
+                              margin: const EdgeInsets.all(10),
+                              child: Padding(
+                                padding: const EdgeInsets.all(15),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      list[index].fromTerminal,
+                                      style: kTerminalStyle.copyWith(
+                                        fontSize: _fontSize(width),
+                                      ),
+                                    ),
+                                    CircleAvatar(
+                                      foregroundColor: const Color(0xfff4f3ee),
+                                      backgroundColor: const Color(0xffbcb8b1),
+                                      radius: _fontSize(width),
+                                      child: const Icon(Icons.sync_alt),
+                                    ),
+                                    Text(
+                                      list[index].toTerminal,
+                                      style: kTerminalStyle.copyWith(fontSize: _fontSize(width)),
+                                    )
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                        onTap: () {
+                          firestoreManager.counter(list[index].reference, int.parse(instanceID));
+                        },
+                      );
+                    },
+                    itemCount: list.length,
+                  ),
                 );
               },
             ),
