@@ -18,7 +18,7 @@ class _HomePageState extends State<HomePage> {
   late final Future<String> _terminalName;
 
   void _getAll() async {
-    _routes = firestoreManager.getRoutes();
+    _routes = firestoreManager.getRoutes(widget.instanceID);
     _terminalName = firestoreManager.getTerminalName(int.parse(instanceID));
   }
 
@@ -96,7 +96,7 @@ class _HomePageState extends State<HomePage> {
                 return Expanded(
                   child: GridView.builder(
                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3,
+                      crossAxisCount: 2,
                       childAspectRatio: 4,
                     ),
                     shrinkWrap: true,

@@ -1,7 +1,6 @@
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:fyp_passenger/data/resource.dart';
 import 'package:fyp_passenger/models/request.dart';
 import 'package:fyp_passenger/models/route_info.dart';
@@ -77,20 +76,28 @@ class FirestoreManager {
     return terminalIDs;
   }
 
-  Future<List<RouteInfo>> getRoutes() async {
+  Future<List<RouteInfo>> getRoutes(String terminalID) async {
     List<RouteInfo> routes = [];
     List<Terminal> terminals = [];
     List<Request> requests = [];
 
     final CollectionReference routeColRef = _db.collection('routes');
     final QuerySnapshot querySnapshot = await routeColRef.get();
-    final List<QueryDocumentSnapshot> docs = querySnapshot.docs;
+    final List<QueryDocumentSnapshot> routeDocs = querySnapshot.docs;
+    final List<QueryDocumentSnapshot> requiredRouteDocs = [];
 
-    for (var doc in docs) {
-      final terminalColRef = doc.reference.collection('terminals');
+    for (var routeDoc in routeDocs) {
+      final terminalColRef = routeDoc.reference.collection('terminals');
       final QuerySnapshot terminalQuerySnapshot = await terminalColRef.get();
       final List<QueryDocumentSnapshot> terminalDocs = terminalQuerySnapshot.docs;
+      bool exist = terminalDocs.any((element) => element['terminal_id'] == int.parse(terminalID));
+      if (exist) requiredRouteDocs.add(routeDoc);
+    }
 
+    for (var routeDoc in requiredRouteDocs) {
+      final terminalColRef = routeDoc.reference.collection('terminals');
+      final QuerySnapshot terminalQuerySnapshot = await terminalColRef.get();
+      final List<QueryDocumentSnapshot> terminalDocs = terminalQuerySnapshot.docs;
       for (var terminalDoc in terminalDocs) {
         final requestColRef = terminalDoc.reference.collection('requests');
         final QuerySnapshot requestQuerySnapshot = await requestColRef.get();
@@ -110,9 +117,9 @@ class FirestoreManager {
       }
       //here
       routes.add(RouteInfo(
-        reference: doc.id,
-        fromTerminal: doc['from_terminal'],
-        toTerminal: doc['to_terminal'],
+        reference: routeDoc.id,
+        fromTerminal: routeDoc['from_terminal'],
+        toTerminal: routeDoc['to_terminal'],
         routeTerminals: terminals,
       ));
     }
@@ -129,9 +136,7 @@ class FirestoreManager {
       for (var terminalDoc in terminalDocs) {
         if (terminalDoc['terminal_id'] == int.parse(terminalID)) {
           final String routeRef = routeDoc.id;
-          debugPrint('routeRef: $routeRef');
           final String terminalRef = terminalDoc.id;
-          debugPrint('terminalRef: $terminalRef');
           final Position? position = await locationManager.getCurrentLocation();
           if (position == null) return;
           await _db
