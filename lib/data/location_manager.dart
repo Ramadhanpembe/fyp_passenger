@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:fyp_passenger/data/resource.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:latlong2/latlong.dart';
 
 class LocationManager {
   LocationManager() {
@@ -37,5 +38,10 @@ class LocationManager {
   Future<Position?> getCurrentLocation() async {
     if (!isPermissionGranted) return null;
     return await Geolocator.getCurrentPosition();
+  }
+
+  static double distanceBetween({required LatLng latLng1, required LatLng latLng2}) {
+    return Geolocator.distanceBetween(
+        latLng1.latitude, latLng1.longitude, latLng2.latitude, latLng2.longitude);
   }
 }

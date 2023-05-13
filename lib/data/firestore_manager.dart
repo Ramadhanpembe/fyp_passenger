@@ -38,6 +38,10 @@ class FirestoreManager {
     }
   }
 
+  Stream<QuerySnapshot> getAllDrivers() {
+    return _db.collection('drivers').snapshots();
+  }
+
   Future<String> getTerminalName(int terminalID) async {
     final CollectionReference routeColRef = _db.collection('routes');
     final QuerySnapshot querySnapshot = await routeColRef.get();
